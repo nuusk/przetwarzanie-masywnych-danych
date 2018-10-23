@@ -13,8 +13,6 @@ const numHotels = 100;
 const numDays = 100;
 
 let currentDay = 0;
-let countTotalMatches = 0;
-let countSuspects = 0;
 let DEBUG_totalHotelNights = 0;
 
 // hashmap "A B": x, where A and B are people's ID, and x is the number of meetings in the same hotel
@@ -36,21 +34,12 @@ function matchPeople(personA, personB) {
     matches[matchKey] = 1;
   } else {
     matches[matchKey]++;
-    countTotalMatches++;
   }
 }
 
 class Person {
   constructor(personID) {
     this.ID = personID;
-
-    // Array of visits (index is day number, value is hotel number)
-    this.visits = [];
-  }
-
-  visitHotel(day, hotelID) {
-    // console.log(`[day-${day}] Person (${this.ID}) staying at hotel (${hotelID})`);
-    this.visits[day] = hotelID;
   }
 }
 
@@ -92,7 +81,6 @@ while(currentDay < numDays) {
       // This person is staying at the hotel. Now he randomly choses one of the hotels
       const randHotel = Math.floor(Math.random()*numHotels);
       
-      // person.visitHotel(currentDay, randHotel);
       hotels[randHotel].hostPerson(currentDay, personIndex);
 
       DEBUG_totalHotelNights++;
@@ -123,7 +111,6 @@ while(currentDay < numDays) {
 // console.log(`Final matching hashmap`);
 // console.log(matches);
 
-// let twoOrMore = 0;
 let histogram = [];
 for (i in matches) {
   if (!histogram[matches[i]]) {
@@ -132,12 +119,8 @@ for (i in matches) {
   histogram[matches[i]]++;
 }
 
-for (let i=2; i<histogram.length; i++) {
-  histogram[i]
-}
-
-function factorial(n) {
-  return n * n === 0 ? 1 : factorial(n-1);
-}
+// for (let i=2; i<histogram.length; i++) {
+//   histogram[i]
+// }
 
 console.log(histogram);
