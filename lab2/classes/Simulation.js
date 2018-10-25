@@ -2,6 +2,7 @@ const Person = require('./Person');
 const Hotel = require('./Hotel');
 
 const combination = require('../utilities/combinatorics').combination;
+const AVERAGE_HISTOGRAM_LENGTH = 5;
 
 class Simulation {
   constructor(numPeople, hotelSleepProb, numHotels, numDays) {
@@ -131,7 +132,7 @@ class Simulation {
 
     console.log('Histogram: ');
     for (let i = 1; i < this.SIMULATIONS_histogram[simulationNumber].length; i++) {
-      console.log(`[${i+1}] -> ${this.SIMULATIONS_histogram[simulationNumber][i]}`);
+      console.log(`[${i}] -> ${this.SIMULATIONS_histogram[simulationNumber][i]}`);
     }
     console.log(`Podejrzanych par jest ${this.SIMULATIONS_numPairs[simulationNumber]}`);
     console.log(`Licznik "par i dni" wynosi ${this.SIMULATIONS_countMatchingSuspectsAndHotel[simulationNumber]}`);
@@ -140,7 +141,7 @@ class Simulation {
 
   printAverageResults(numSimulations) {
     let averageHistogram = [];
-    for (let i = 0; i <= numSimulations; i++) {
+    for (let i = 0; i <= AVERAGE_HISTOGRAM_LENGTH; i++) {
       averageHistogram[i] = 0;
     }
     let averageNumPairs = 0;
@@ -160,7 +161,7 @@ class Simulation {
     console.log(`\n~~~ ŚREDNIE WYNIKI SYMULACJI ~~~ `);
     console.log('Średni histogram: ');
     for (let i = 1; i < averageHistogram.length; i++) {
-      console.log(`[${i+1}] -> ${averageHistogram[i]/numSimulations}`);
+      console.log(`[${i}] -> ${averageHistogram[i]/numSimulations}`);
     }
     console.log(`Średnio podejrzanych par jest ${Math.round(100 * averageNumPairs/numSimulations) / 100}`);
     console.log(`Średnio licznik "par i dni" wynosi ${Math.round(100 * averageCountPairsAndDays/numSimulations) / 100}`);
