@@ -1,47 +1,7 @@
-const PERFORMANCE_MODE = true;
+const Person = require('./Person');
+const Hotel = require('./Hotel');
 
-// The number of people in the simulation
-const NUM_SIMULATIONS = 3;
-
-function combination(n, k) {
-  let tmp = 1;
-
-  for (let i = k+1; i <= n; i++) {
-    tmp *= i;
-  }
-
-  for (let i = 1; i <= n-k; i++) {
-    tmp /= i;
-  }
-
-  return tmp;
-}
-
-class Person {
-  constructor(personID) {
-    this.ID = personID;
-  }
-}
-
-class Hotel {
-  constructor(hotelID, numDays) {
-    this.ID = hotelID;
-
-    // Each element in this array represents the set os people that are visiting this hotel each given day
-    this.visitors = [];
-    for (let i=0; i<numDays; i++) {
-      this.visitors[i] = [];
-    }
-  }
-
-  hostPerson(day, personID) {
-    this.visitors[day].push(personID);
-  }
-
-  sortVisitors(day) {
-    this.visitors[day].sort((a,b) => a-b);
-  }
-}
+const combination = require('../utilities/combinatorics').combination;
 
 class Simulation {
   constructor(numPeople, hotelSleepProb, numHotels, numDays) {
@@ -81,11 +41,6 @@ class Simulation {
     let A = personA;
     let B = personB;
     
-    if (!PERFORMANCE_MODE) {
-      A = Math.min(personA, personB);
-      B = A === personA ? personB : personA;
-    }
-  
     const matchKey = `${A} ${B}`;
     // console.log(`[${this.currentDay}] new Match`, matchKey);
   
@@ -213,13 +168,4 @@ class Simulation {
   }
 }
 
-// (numPeople, probability, numHotels, numDays)
-const app = new Simulation(10000, 0.1, 100, 100);
-
-for (let i=0; i<NUM_SIMULATIONS; i++) {
-  app.run();
-  app.printSimulationResults(i);
-  app.resetSimulation();
-}
-
-app.printAverageResults(NUM_SIMULATIONS);
+module.exports = Simulation;
