@@ -18,6 +18,14 @@ let DEBUG_totalHotelNights = 0;
 // hashmap "A B": x, where A and B are people's ID, and x is the number of meetings in the same hotel
 let matches = {};
 
+// Just a set of suspects (since one suspect can be in a pair with many diffrent people)
+let suspects = new Set();
+
+// Number of pairs
+let numPairs = 0;
+
+let countMatchingSuspectsAndHotel = 0;
+
 function matchPeople(personA, personB) {
   // Additional functionality to make sure matching is sorted (so always A is lower than B)
   let A = personA;
@@ -29,12 +37,33 @@ function matchPeople(personA, personB) {
   }
 
   const matchKey = `${A} ${B}`;
+  // console.log(`[${currentDay}] new Match`, matchKey);
 
   if (!matches[matchKey]) {
     matches[matchKey] = 1;
   } else {
     matches[matchKey]++;
   }
+
+  // Adding new suspects
+  if (matches[matchKey] >= 2) {
+    suspects.add(A);
+    suspects.add(B);
+  }
+}
+
+function combination(n, k) {
+  let tmp = 1;
+
+  for (let i = k+1; i <= n; i++) {
+    tmp *= i;
+  }
+
+  for (let i = 1; i <= n-k; i++) {
+    tmp /= i;
+  }
+
+  return tmp;
 }
 
 class Person {
@@ -73,7 +102,7 @@ for (let i=0; i<numHotels; i++) {
 }
 
 while(currentDay < numDays) {
-  // console.log(`~~ Starting day number ${currentDay}. ~~`);
+  console.log(`~~ Starting day number ${currentDay}. ~~`);
 
   people.forEach((person, personIndex) => {
     const tmpProb = Math.random();
@@ -91,7 +120,7 @@ while(currentDay < numDays) {
     // Sort visitors so later we can arrenge meetings with ascending order, preventing the need of duplicating meetings for each pair of people (since Person A ID will always be lower than Person B ID)
     hotel.sortVisitors(currentDay);
 
-    // console.log('~~~~ analysing hotel',hotelIndex,  hotel.visitors[currentDay]);
+    // console.log('~~~~ analysing hotel' ,hotelIndex /*,  hotel.visitors[currentDay]*/ );
     for (let i=0; i<hotel.visitors[currentDay].length; i++) {
       for(let j=i+1; j<hotel.visitors[currentDay].length; j++) {
         matchPeople(hotel.visitors[currentDay][i], hotel.visitors[currentDay][j]);
@@ -101,6 +130,8 @@ while(currentDay < numDays) {
 
     });
   });
+
+  // console.log(matches);
 
   currentDay++;
 }
@@ -119,8 +150,23 @@ for (i in matches) {
   histogram[matches[i]]++;
 }
 
+// Counting the pairs and matching suspects & pairs
+for (let meetingsNumber = 2; meetingsNumber < histogram.length; meetingsNumber++) {
+  numPairs += histogram[meetingsNumber];
+}
+
 // for (let i=2; i<histogram.length; i++) {
 //   histogram[i]
 // }
 
+// Counting pairs&days, which is the number of combination of pairs
+for (let meetingsNumber = 2; meetingsNumber < histogram.length; meetingsNumber++) {
+  countMatchingSuspectsAndHotel += combination(meetingsNumber, 2) * histogram[meetingsNumber];
+}
+
 console.log(histogram);
+
+// The answer is written in polish because the classes are also in polish
+console.log(`Podejrzanych par jest ${numPairs}`);
+console.log(`Licznik "par i dni" wynosi ${countMatchingSuspectsAndHotel}`);
+console.log(`Wszystkich podejrzanych jest łącznie ${suspects.size}`);
