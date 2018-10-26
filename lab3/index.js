@@ -1,10 +1,14 @@
 const express = require('express');
-const app = express();
+const mongoose = require('mongoose');
 
-app.get('/', (req, res) => {
-  res.send('Hello Poe');
-});
+require('dotenv').config();
 
-app.listen(1234, () => {
-  console.log('Server started listening on port 1234...');
+const mongoURI = `mongodb://${process.env.DB_USER}
+                  :${process.env.DB_PASS}
+                  @${process.env.DB_HOST}`;
+
+mongoose.connect(mongoURI, () => {
+  console.log('Successfully connected to DB!');
+
+
 });
