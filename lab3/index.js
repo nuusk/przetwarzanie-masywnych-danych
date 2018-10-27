@@ -9,6 +9,4 @@ const mongoURI = `mongodb://${process.env.DB_USER}
 
 mongoose.connect(mongoURI, () => {
   console.log('Successfully connected to DB!');
-
-
 });
