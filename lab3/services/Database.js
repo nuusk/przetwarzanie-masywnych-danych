@@ -8,10 +8,10 @@ const Track = require('../models/Track');
 
 class Database {
 
-  constructor() {
-    mongoose.connect(mongoURI, (err) => {
+  static initializeConnection() {
+    mongoose.connect(mongoURI, { useNewUrlParser: true }, (err) => {
       if (!err) {
-        console.log('Connected...');
+        console.log('Successfully Connected to the database...');
       }
     });
   }

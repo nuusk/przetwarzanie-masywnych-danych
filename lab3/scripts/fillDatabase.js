@@ -3,6 +3,7 @@ const readLine = require('readline');
 const FILE_SEPARATOR = '<SEP>'
 
 const db = new Database();
+db.constructor.initializeConnection();
 
 const listenActivitiesReader = readLine.createInterface({
   input: require('fs').createReadStream(`${__dirname}/../listenActivities.txt`)
