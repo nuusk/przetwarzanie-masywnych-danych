@@ -7,9 +7,9 @@ module.exports = (app) => {
 
   app.get('/tracks', (req, res) => {
     db.findTracks()
-    .then(tracks => {
-      res.send(tracks);
-    });
+      .then(tracks => {
+        res.send(tracks);
+      });
   });
 
   app.get('/info', (req, res) => {
