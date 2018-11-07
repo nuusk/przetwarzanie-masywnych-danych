@@ -1,23 +1,38 @@
 const fs = require('fs');
-const db = require('../services/Database');
-const mongoose = require('mongoose');
+const Database = require('../services/Database');
+const FILE_SEPARATOR = '<SEP>'
 
-require('dotenv').config();
-
-const mongoURI = `mongodb://${process.env.DB_USER}
-                  :${process.env.DB_PASS}
-                  @${process.env.DB_HOST}`;
+// const mongoose = require('mongoose');
 
 // const tracks = fs.readFileSync(`${__dirname}/../data/tracks.txt`, 'utf-8').split('\n');
 // const listenActivities = fs.readFileSync(`${__dirname}/../data/listenActivities.txt`, 'utf-8').split('\n');
 
+const db = new Database();
 
-var lineReader = require('readline').createInterface({
+const listenActivitiesReader = require('readline').createInterface({
   input: require('fs').createReadStream(`${__dirname}/../data/listenActivities.txt`)
 });
 
-lineReader.on('line', function (line) {
-  console.log('Line from file:', line);
+listenActivitiesReader.on('line', line => {
+  // console.log('Line from file:', line);
+});
+
+const trackReader = require('readline').createInterface({
+  input: require('fs').createReadStream(`${__dirname}/../data/tracks.txt`)
+});
+
+trackReader.on('line', line => {
+  // console.log(line);
+  const splitted = line.split(FILE_SEPARATOR);
+
+  const newTrack = {
+    trakcID: splitted[0],
+    recordingID: splitted[1],
+    artistName: splitted[2],
+    trackName: splitted[3],
+  }
+  // console.log(newTrack);
+  db.addTrack(newTrack);
 });
 
 // tracks.map(track => ({...track.split('<SEP>')})).forEach(track => {
@@ -26,9 +41,7 @@ lineReader.on('line', function (line) {
 // let newListenActivities = listenActivities.map(listenActivity => ({...listenActivity.split('<SEP>')}));
 
 
-mongoose.connect(mongoURI, () => {
-  console.log('Successfully connected to DB!');
-});
+
 
 // tracks.reduce((obj, item) => {
 //   console.log(item);
