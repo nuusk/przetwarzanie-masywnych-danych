@@ -3,9 +3,6 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const mongoURI = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}`;
-                  
-// mongoose.connect('mongodb://maciejkrol:password@ds135817.mlab.com:35817/kruche_krolestwo');
-
 const ListenActivity = require('../models/ListenActivity');
 const Track = require('../models/Track');
 
@@ -19,16 +16,15 @@ class Database {
     });
   }
 
-  addTrack(track) {
+  async addTrack(track) {
 
     Track.create({
       trakcID: track.trakcID,
       recordingID: track.recordingID,
       artistName: track.artistName,
       trackName: track.trackName
-    }, (err, track) => {
-      if (err) console.log(err);
-      console.log(track);
+    }, (err) => {
+      if (err) throw err;
     });
 
   }
@@ -43,6 +39,15 @@ class Database {
       if (err) throw err;
     });
 
+  }
+
+  findTracks() {
+    return new Promise((resolve, reject) => {
+      Track.find({})
+        .then((tracks) => {
+          resolve(tracks);
+        });
+    });
   }
 
 }

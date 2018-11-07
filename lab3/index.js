@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 
 require('dotenv').config();
 
-const mongoURI = `mongodb://${process.env.DB_USER}
-                  :${process.env.DB_PASS}
-                  @${process.env.DB_HOST}`;
+const app = express();
+const PORT = 5000;
 
-mongoose.connect(mongoURI, () => {
-  console.log('Successfully connected to DB!');
-});
+require('./routes/apiRoutes')(app);
+
+app.listen(PORT);
+console.log(`Server started running on port ${PORT}...`); 
