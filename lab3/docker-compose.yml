@@ -1,7 +1,11 @@
 version: '3'
 services:
+  redis:
+    image: redis
+    networks:
+      - webnet
   web:
-    image: docker-node-express-mongo
+    image: million-song-challenge
     build: .
     command: node index.js
     ports:
@@ -9,15 +13,23 @@ services:
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
+    networks:
+      - webnet
+    environment:
+      DB_HOST: db # this is available at process.env.DB_HOST in index.js
     depends_on:
-      - 'mongo'
+      - db
 
-  mongo:
-    image: 'mongo'
+  db:
+    image: postgres
+    networks:
+      - webnet
+    environment:
+      POSTGRES_PASSWORD: NIEpodam123
+      POSTGRES_USER: poe
+      POSTGRES_DB: million-song
     ports:
       - '27017:27017'
 
-  adminmongo:
-    image: 'mrvautin/adminmongo'
-    ports:
-      - '1234:1234'
+networks:
+  webnet:

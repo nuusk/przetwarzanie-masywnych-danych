@@ -1,43 +1,36 @@
-const mongoose = require('mongoose');
-
+const pg = require('pg');
 require('dotenv').config();
 
-const mongoURI = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}`;
-const ListenActivity = require('../models/ListenActivity');
-const Track = require('../models/Track');
-
 class Database {
+  constructor() {
+    console.log('0');
+    this.client = new pg.Client('postgres://localhost:5432/poe');
+    this.client.connect();
+  }
 
-  static initializeConnection() {
-    mongoose.connect(mongoURI, { useNewUrlParser: true }, (err) => {
-      if (!err) {
-        console.log('Successfully Connected to the database...');
-      }
-    });
+  async initializeTables() {
+    await this.client.query(
+      'create table if not exists TRACKS (TRACK_ID VARCHAR(32), RECORDING_ID VARCHAR(32), ARTIST_NAME VARCHAR(32), TRACK_NAME VARCHAR(32))'
+    );
+    
+    await this.client.query(
+      'create table if not exists LISTEN_ACTIVITIES (TRACK_ID VARCHAR(32), USER_ID VARCHAR(32), ACTIVITY_DATE DATE)'
+    );
   }
 
   async addTrack(track) {
-
-    Track.create({
-      trakcID: track.trakcID,
-      recordingID: track.recordingID,
-      artistName: track.artistName,
-      trackName: track.trackName
-    }, (err) => {
-      if (err) throw err;
-    });
+    // console.log(`insert into TRACKS (TRACK_ID, RECORDING_ID, ARTIST_NAME, TRACK_NAME) values (${track.trackID}, ${track.recordingID}, ${track.artistName}, ${track.trackName})`);
+    await this.client.query(
+      `insert into TRACKS (TRACK_ID, RECORDING_ID, ARTIST_NAME, TRACK_NAME) values (${track.trackID}, ${track.recordingID}, ${track.artistName}, ${track.trackName})`
+    );
 
   }
 
   async addListenActivity(listenActivity) {
-        
-    ListenActivity.create({
-      userID: listenActivity.userID,
-      trackID: listenActivity.trackID,
-      date: listenActivity.date
-    }, (err) => {
-      if (err) throw err;
-    });
+
+    await this.client.query(
+      `insert into LISTEN_ACTIVITIES (TRACK_ID, USER_ID, activityDate) values (${listenActivity.trackID}, ${listenActivity.userID}, ${new Date(listenActivity.date)})`
+    );
 
   }
 
@@ -50,6 +43,9 @@ class Database {
     });
   }
 
+  async quit() {
+    await this.client.end();
+  }
 }
 
 module.exports = Database;
