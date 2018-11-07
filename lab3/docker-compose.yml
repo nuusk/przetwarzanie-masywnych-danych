@@ -4,18 +4,20 @@ services:
     image: redis
     networks:
       - webnet
+
   web:
     image: million-song-challenge
     build: .
-    command: node index.js
+    command: node scripts/fillDatabase.js
     ports:
       - '5000:5000'
     volumes:
       - .:/usr/src/app
-      - /usr/src/app/node_modules
+      - ./node_modules:/usr/src/app/node_modules
     networks:
       - webnet
     environment:
+      DB_URL: postgres://poe:NIEpodam123@db:5432/web
       DB_HOST: db # this is available at process.env.DB_HOST in index.js
     depends_on:
       - db
@@ -25,11 +27,9 @@ services:
     networks:
       - webnet
     environment:
-      POSTGRES_PASSWORD: NIEpodam123
       POSTGRES_USER: poe
+      POSTGRES_PASSWORD: NIEpodam123
       POSTGRES_DB: million-song
-    ports:
-      - '27017:27017'
 
 networks:
   webnet:

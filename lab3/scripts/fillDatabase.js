@@ -24,21 +24,21 @@ const db = new Database();
 //   db.addListenActivity(newActivity);
 // });
 
-const trackReader = readLine.createInterface({
-  input: require('fs').createReadStream(`${__dirname}/../tracks.txt`)
-});
+// const trackReader = readLine.createInterface({
+//   input: require('fs').createReadStream(`${__dirname}/../tracks.txt`)
+// });
 
-trackReader.on('line', line => {
-  const splitted = line.split(FILE_SEPARATOR);
+// trackReader.on('line', line => {
+//   const splitted = line.split(FILE_SEPARATOR);
 
-  const newTrack = {
-    trackID: splitted[0],
-    recordingID: splitted[1],
-    artistName: splitted[2],
-    trackName: splitted[3],
-  }
+//   const newTrack = {
+//     trackID: splitted[0],
+//     recordingID: splitted[1],
+//     artistName: splitted[2],
+//     trackName: splitted[3],
+//   }
 
-  db.addTrack(newTrack);
-});
+//   db.addTrack(newTrack);
+// });
 
 // db.quit();

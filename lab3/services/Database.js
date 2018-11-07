@@ -3,19 +3,16 @@ require('dotenv').config();
 
 class Database {
   constructor() {
-    console.log('0');
-    this.client = new pg.Client('postgres://localhost:5432/poe');
-    this.client.connect();
-  }
-
-  async initializeTables() {
-    await this.client.query(
-      'create table if not exists TRACKS (TRACK_ID VARCHAR(32), RECORDING_ID VARCHAR(32), ARTIST_NAME VARCHAR(32), TRACK_NAME VARCHAR(32))'
-    );
-    
-    await this.client.query(
-      'create table if not exists LISTEN_ACTIVITIES (TRACK_ID VARCHAR(32), USER_ID VARCHAR(32), ACTIVITY_DATE DATE)'
-    );
+    this.client = new pg.Client('postgres://poe:NIEpodam123@db:5432');
+    this.client.connect().then(() => {
+      this.client.query(
+        'create table if not exists TRACKS (TRACK_ID VARCHAR(32), RECORDING_ID VARCHAR(32), ARTIST_NAME VARCHAR(32), TRACK_NAME VARCHAR(32))'
+      );
+      
+      this.client.query(
+        'create table if not exists LISTEN_ACTIVITIES (TRACK_ID VARCHAR(32), USER_ID VARCHAR(32), ACTIVITY_DATE DATE)'
+      );
+    });
   }
 
   async addTrack(track) {
