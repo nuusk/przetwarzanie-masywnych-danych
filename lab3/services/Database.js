@@ -1,52 +1,78 @@
 const { Pool, Client } = require('pg');
+const fs = require('fs');
+const copyFrom = require('pg-copy-streams').from;
+const replaceStream = require('replacestream');
+
 require('dotenv').config();
 const FILE_SEPARATOR = '<SEP>'
-const LineByLineReader = require('line-by-line');
+const REPLACED_FILE_SEPARATOR = ',';
+
+// const datasourcesConfigFilePath = path.join(__dirname,'..','..','server','datasources.json');
+// const datasources = JSON.parse(fs.readFileSync(datasourcesConfigFilePath, 'utf8'));
 
 const { toDoubleQuotes, formatDate } = require('../scripts/utilities');
 
 class Database {
   constructor() {
     this.client = new Client({
-      user: 'poe',
-      host: 'db',
-      database: 'million-song',
-      password: 'NIEpodam123',
-      port: 5432,
+      user: process.env.DB_USER,
+      host: process.env.DB_HOST,
+      database: process.env.DB_NAME,
+      password: process.env.DB_PASSWORD,
+      port: process.env.DB_PORT
     });
-    
+
     this.pool = new Pool({
       user: process.env.DB_USER,
       host: process.env.DB_HOST,
       database: process.env.DB_NAME,
       password: process.env.DB_PASSWORD,
       port: process.env.DB_PORT
-  });
-
-    // this.client.connect().then(() => {
+    });
+    // this.pool.connect().then(() => {
     //   console.log('Successfully connected to db...');
-    //   this.initializeDatabase();
-    // });
+    //   this.main();
+    // })
 
-    this.pool.connect().then(() => {
-      let done = () => {
-        this.client.release();
-      }
-    })
+    this.client.connect().then(() => {
+      console.log('Successfully connected to db...');
+      this.main();
+    });
   }
 
-  async initializeDatabase() {
+  async main() {
 
     await this.initializeTables();
     console.log('# Tables have been initialized.');
 
-    console.log('# Begin disable indexes procedure.')
-    await this.disableIndexes();
-    console.log('# Indexes have been disabled.');
+    // console.log('# Begin disable indexes procedure.')
+    // await this.disableIndexes();
+    // console.log('# Indexes have been disabled.');
 
     console.log('# Begin fill database procedure.')
     await this.fillDatabase();
     console.log('# Fill database ended without failure.');
+
+    // console.log('# Begin enable indexes procedure.')
+    // await this.enableIndexes();
+    // console.log('# Indexes have been enabled.');
+
+    // console.log('# Begin reindex procedure.')
+    // await this.reindexTables();
+    // console.log('# Tables have been reindexed.');
+
+    console.log('# Begin Index procedure.')
+    await this.indexTables();
+    console.log('# Tables have been indexed.');
+
+    console.log('# Prepare to list results.');
+    // await this.getTracks();
+    await this.getActivities();
+    console.log('# Listing finished.');
+
+    console.log('# Proceed to finish operation.');
+    this.quit();
+    console.log('# You should not have seen this message, captain.');
 
     // await this.getMostPopularTracks();
   }
@@ -56,7 +82,7 @@ class Database {
     const reindexTracks = this.client.query(
       `reindex TRACKS`
     ).then(res => {
-      console.log('[index] TRACKS table have been reindexed.');
+      console.log('[index] TRACKS table has been reindexed.');
     }).catch(err => {
       console.error(err);
     });
@@ -64,12 +90,33 @@ class Database {
     const reindexActivities = this.client.query(
       `reindex LISTEN_ACTIVITIES`
     ).then(res => {
-      console.log('[index] LISTEN_ACTIVITIES table have been reindexed.');
+      console.log('[index] LISTEN_ACTIVITIES table has been reindexed.');
     }).catch(err => {
       console.error(err);
     });
 
     return Promise.all([reindexTracks, reindexActivities]);
+  }
+
+  indexTables() {
+
+    const indexTracks = this.client.query(
+      `CREATE INDEX track_index ON tracks(track_id, artist_name, track_name)`
+    ).then(res => {
+      console.log('[index] TRACKS table has been indexed.');
+    }).catch(err => {
+      console.error(err);
+    });
+
+    const indexActivities = this.client.query(
+      `CREATE INDEX activity_index ON listen_activities(track_id, user_id, activity_date)`
+    ).then(res => {
+      console.log('[index] LISTEN_ACTIVITIES table has been indexed.');
+    }).catch(err => {
+      console.error(err);
+    });
+
+    return Promise.all([indexTracks, indexActivities]);
   }
 
   initializeTables() {
@@ -91,7 +138,7 @@ class Database {
     });
 
     const createTracks = this.client.query(
-      'create table if not exists TRACKS (TRACK_ID VARCHAR(256), RECORDING_ID VARCHAR(256), ARTIST_NAME VARCHAR(256), TRACK_NAME VARCHAR(256))'
+      'create table if not exists TRACKS (RECORDING_ID TEXT, TRACK_ID TEXT, ARTIST_NAME TEXT, TRACK_NAME TEXT)'
     ).then(res => {
       console.log('[init] Successfully created TRACKS table.');
     }).catch(err => {
@@ -99,7 +146,7 @@ class Database {
     });
     
     const createActivities = this.client.query(
-      'create table if not exists LISTEN_ACTIVITIES (TRACK_ID VARCHAR(256), USER_ID VARCHAR(256), ACTIVITY_DATE DATE)'
+      'create table if not exists LISTEN_ACTIVITIES (TRACK_ID TEXT, USER_ID TEXT, ACTIVITY_DATE NUMERIC)'
     ).then(res => {
       console.log('[init] Successfully created LISTEN_ACTIVITIES table.');
     }).catch(err => {
@@ -147,8 +194,6 @@ class Database {
     return Promise.all([enableIndexActivities, enableIndexTracks]);
   }
 
-
-
   disableIndexes() {
     
     const disableIndexActivities = this.client.query(
@@ -183,60 +228,63 @@ class Database {
   }
 
   fillDatabase() {
-    const files = [`${__dirname}/../listenActivities.txt`, `${__dirname}/../tracks.txt`];
+
+    const files = [
+      `${__dirname}/../listenActivities.txt`, 
+      `${__dirname}/../tracks.txt`,
+      `${__dirname}/../test.txt`
+    ];
     
     const activityPromise = new Promise((resolve, reject) => {
-      const activitiesLineReader = new LineByLineReader(files[0]);
-      
-      activitiesLineReader.on('error', err => {
-        reject(err);
-      });
-      
-      activitiesLineReader.on('line', line => {
-        const splitted = line.split(FILE_SEPARATOR);
-      
-        const newActivity = {
-          userID: splitted[0],
-          trackID: splitted[1],
-          date: splitted[2]
-        }
-  
-        this.addListenActivity(newActivity);
-      });
-      
-      activitiesLineReader.on('end', () => {
-        console.log('[fill] All lines are read, file <listenActivities.txt> is closed now.');
-        resolve();
-      });
-    })
 
-    const trackPromise = new Promise((resolve, reject) => {
-      const tracksLineReader = new LineByLineReader(files[1]);
-  
-      tracksLineReader.on('error', err => {
-        reject(err);
-      });
+      const stream = this.client.query(copyFrom(`copy LISTEN_ACTIVITIES (TRACK_ID, USER_ID, ACTIVITY_DATE) from stdin with delimiter '${REPLACED_FILE_SEPARATOR}'`));
+      const activityStream = fs.createReadStream(files[0]);
       
-      tracksLineReader.on('line', line => {
-        const splitted = line.split(FILE_SEPARATOR);
-      
-        const newTrack = {
-          trackID: splitted[1],
-          recordingID: splitted[0],
-          artistName: splitted[2],
-          trackName: splitted[3],
-        }
-        
-        this.addTrack(newTrack);
-      });
-      
-      tracksLineReader.on('end', () => {
-        console.log('[fill] All lines are read, file <tracks.txt> is closed now.');
-        resolve();
-      });
+      activityStream.on('error', reject);
+      stream.on('end', resolve);
+      stream.on('error', reject);
+      activityStream
+        .pipe(replaceStream(FILE_SEPARATOR, REPLACED_FILE_SEPARATOR))
+        // .pipe(process.stdout)
+        .pipe(stream);
     });
 
-    return Promise.all([activityPromise, trackPromise]);
+    const trackPromise = new Promise((resolve, reject) => {
+      const stream = this.client.query(copyFrom(`COPY tracks FROM STDIN WITH DELIMITER '${REPLACED_FILE_SEPARATOR}'`));
+      const trackStream = fs.createReadStream(files[1]);
+
+      trackStream.on('error', reject);
+      stream.on('end', resolve);
+      stream.on('error', reject);
+      trackStream
+        .pipe(replaceStream(FILE_SEPARATOR, REPLACED_FILE_SEPARATOR))
+        .pipe(stream);
+    });
+
+    return activityPromise;
+    return Promise.all([trackPromise]);
+   }
+
+   async getTracks() {
+    const tracks = await this.client.query({
+      rowMode: 'array',
+      text: 'select * from TRACKS'
+    });
+
+    tracks.rows.forEach(track => {
+      console.log(track);
+    });
+   }
+
+   async getActivities() {
+    const activities = await this.client.query({
+      rowMode: 'array',
+      text: 'select * from LISTEN_ACTIVITIES'
+    });
+
+    activities.rows.forEach(activity => {
+      console.log(activity);
+    });
    }
 
   async getMostPopularTracks() {
@@ -245,11 +293,11 @@ class Database {
       // 'select TRACK_NAME, ARTIST_NAME, count(*) as occ from TRACKS join LISTEN_ACTIVITIES using(TRACK_ID) group by (ARTIST_NAME, TRACK_NAME) order by occ desc fetch first 10 rows only'
     );
     
-    console.log(tracks);
+    //console.log(tracks);
 
     tracks.rows.forEach(track => {
-      console.log(track);
-      // console.log(`${track.track_name} ${track.artist_name} ${track.track_name}`);
+      //console.log(track);
+      // //console.log(`${track.track_name} ${track.artist_name} ${track.track_name}`);
     });
   }
 
@@ -285,8 +333,8 @@ class Database {
     });
   }
 
-  async quit() {
-    await this.client.end();
+  quit() {
+    this.pool.end();
   }
 }
 

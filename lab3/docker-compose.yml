@@ -22,8 +22,9 @@ services:
       DB_PASSWORD: NIEpodam123
       DB_NAME: million-song
       DB_PORT: 5432
-    depends_on:
+    links:
       - db
+    restart: always
 
   db:
     image: postgres
