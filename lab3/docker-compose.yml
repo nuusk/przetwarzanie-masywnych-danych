@@ -18,6 +18,10 @@ services:
     environment:
       DB_URL: postgres://poe:NIEpodam123@db:5432/million-song
       DB_HOST: db # this is available at process.env.DB_HOST in index.js
+      DB_USER: poe
+      DB_PASSWORD: NIEpodam123
+      DB_NAME: million-song
+      DB_PORT: 5432
     depends_on:
       - db
 

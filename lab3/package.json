@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node --max-old-space-size=4096 index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -14,6 +14,8 @@
     "express": "^4.16.4",
     "line-by-line": "^0.1.6",
     "pg": "^7.6.1",
+    "pg-copy-streams": "^1.2.0",
+    "pg-promise": "^8.5.2",
     "sequelize": "^4.41.1"
   }
 }
