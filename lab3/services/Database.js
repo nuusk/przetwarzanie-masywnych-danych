@@ -1,6 +1,5 @@
 const { Pool, Client } = require('pg');
 require('dotenv').config();
-const readLine = require('readline');
 const FILE_SEPARATOR = '<SEP>'
 const LineByLineReader = require('line-by-line');
 
@@ -25,8 +24,8 @@ class Database {
 
   async initializeDatabase() {
     // await this.initializeTables();
-    await this.fillDatabase();
-    // await this.getMostPopularTracks();
+    // await this.fillDatabase();
+    await this.getMostPopularTracks();
   }
 
   async initializeTables() {
@@ -47,7 +46,7 @@ class Database {
     });
 
     await this.client.query(
-      'create table if not exists TRACKS (TRACK_ID VARCHAR(128), RECORDING_ID VARCHAR(128), ARTIST_NAME VARCHAR(128), TRACK_NAME VARCHAR(128))'
+      'create table if not exists TRACKS (TRACK_ID VARCHAR(256), RECORDING_ID VARCHAR(256), ARTIST_NAME VARCHAR(256), TRACK_NAME VARCHAR(256))'
     ).then(res => {
       console.log('Successfully created TRACKS table.');
     }).catch(err => {
@@ -55,7 +54,7 @@ class Database {
     });
     
     await this.client.query(
-      'create table if not exists LISTEN_ACTIVITIES (TRACK_ID VARCHAR(128), USER_ID VARCHAR(128), ACTIVITY_DATE DATE)'
+      'create table if not exists LISTEN_ACTIVITIES (TRACK_ID VARCHAR(256), USER_ID VARCHAR(256), ACTIVITY_DATE DATE)'
     ).then(res => {
       console.log('Successfully created LISTEN_ACTIVITIES table.');
     }).catch(err => {
@@ -80,7 +79,7 @@ class Database {
         trackID: splitted[1],
         date: splitted[2]
       }
-    
+
       this.addListenActivity(newActivity);
     });
     
@@ -109,46 +108,11 @@ class Database {
       console.log('all lines are read, file tracks is closed now.');
     });
     
-    // trackReader.on('line', line => {
-    //   const splitted = line.split(FILE_SEPARATOR);
-    
-    //   const newTrack = {
-    //     trackID: splitted[0],
-    //     recordingID: splitted[1],
-    //     artistName: splitted[2],
-    //     trackName: splitted[3],
-    //   }
-       
-    //   this.addTrack(newTrack);
-    // });
-
-    // const listenActivitiesReader = readLine.createInterface({
-    //   input: require('fs').createReadStream(`${__dirname}/../listenActivities.txt`)
-    // });
-    
-    // listenActivitiesReader.on('line', line => {
-    //   const splitted = line.split(FILE_SEPARATOR);
-    
-    //   const newActivity = {
-    //     userID: splitted[0],
-    //     trackID: splitted[1],
-    //     date: splitted[2]
-    //   }
-    
-    //   this.addListenActivity(newActivity);
-    // });
-  }
-
-  // async addTrack(track) {
-  //   // console.log(`insert into TRACKS (TRACK_ID, RECORDING_ID, ARTIST_NAME, TRACK_NAME) values (''${track.trackID}'', ''${track.recordingID}'', ''${track.artistName}'', ''${track.trackName}'')`);
-  //   await this.client.query(
-  //     `insert into TRACKS values (''${track.trackID}'', ''${track.recordingID}'', ''${track.artistName}'', ''${track.trackName}'')`
-  //   );
-  // }
+   }
 
   async getMostPopularTracks() {
     const tracks = await this.client.query(
-      'select * from TRACKS'
+      'select * from LISTEN_ACTIVITIES'
       // 'select TRACK_NAME, ARTIST_NAME, count(*) as occ from TRACKS join LISTEN_ACTIVITIES using(TRACK_ID) group by (ARTIST_NAME, TRACK_NAME) order by occ desc fetch first 10 rows only'
     );
     
@@ -172,7 +136,11 @@ class Database {
   }
 
   async addListenActivity(listenActivity) {
-
+    console.log(`insert into LISTEN_ACTIVITIES ( \
+      TRACK_ID, USER_ID, ACTIVITY_DATE \
+    ) values ( \
+      '${listenActivity.trackID}', '${listenActivity.userID}', '${formatDate(listenActivity.date)}'::date \
+    )`);
     await this.client.query(
       `insert into LISTEN_ACTIVITIES ( \
         TRACK_ID, USER_ID, ACTIVITY_DATE \
