@@ -8,8 +8,8 @@ const DB_NAME = 'million-song';
 const Database = require('./services/Database');
 const db = new Database();
 
-db.constructor.initializeConnection();
-db.initializeTables();
+// db.constructor.initializeConnection();
+// db.initializeTables();
 
 // const sequelize = new Sequelize(process.env.TEST_DB || DB_NAME, DB_USER, DB_PASSWORD, {
 //   dialect: 'postgres',

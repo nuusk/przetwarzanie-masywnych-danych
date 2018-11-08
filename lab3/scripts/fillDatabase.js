@@ -1,44 +1,16 @@
-const Database = require('../services/Database');
-const readLine = require('readline');
-const FILE_SEPARATOR = '<SEP>'
+const files = [`${__dirname}/../listenActivities.txt`, `${__dirname}/../tracks.txt`];
 
-const db = new Database();
-// db.initializeTables()
-//   .then(() => {
-//     db.quit();
-//   });
+var LineByLineReader = require('line-by-line'),
+    lr = new LineByLineReader(files[0]);
 
-// const listenActivitiesReader = readLine.createInterface({
-//   input: require('fs').createReadStream(`${__dirname}/../listenActivities.txt`)
-// });
+lr.on('error', function (err) {
+	// 'err' contains error object
+});
 
-// listenActivitiesReader.on('line', line => {
-//   const splitted = line.split(FILE_SEPARATOR);
+lr.on('line', function (line) {
+  console.log(line);
+});
 
-//   const newActivity = {
-//     userID: splitted[0],
-//     trackID: splitted[1],
-//     date: splitted[2]
-//   }
-
-//   db.addListenActivity(newActivity);
-// });
-
-// const trackReader = readLine.createInterface({
-//   input: require('fs').createReadStream(`${__dirname}/../tracks.txt`)
-// });
-
-// trackReader.on('line', line => {
-//   const splitted = line.split(FILE_SEPARATOR);
-
-//   const newTrack = {
-//     trackID: splitted[0],
-//     recordingID: splitted[1],
-//     artistName: splitted[2],
-//     trackName: splitted[3],
-//   }
-
-//   db.addTrack(newTrack);
-// });
-
-// db.quit();
+lr.on('end', function () {
+	// All lines are read, file is closed now.
+});
