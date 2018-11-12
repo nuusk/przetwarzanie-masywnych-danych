@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node --max-old-space-size=4096 index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "repo": "open-url https://github.com/pietersweter/przetwarzanie-masywnych-danych"
   },
   "author": "",
   "license": "ISC",

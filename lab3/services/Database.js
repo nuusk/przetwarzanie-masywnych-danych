@@ -245,7 +245,6 @@ class Database {
       stream.on('error', reject);
       activityStream
         .pipe(replaceStream(FILE_SEPARATOR, REPLACED_FILE_SEPARATOR))
-        // .pipe(process.stdout)
         .pipe(stream);
     });
 
@@ -261,8 +260,7 @@ class Database {
         .pipe(stream);
     });
 
-    return activityPromise;
-    return Promise.all([trackPromise]);
+    return Promise.all([trackPromise, activityPromise]);
    }
 
    async getTracks() {
