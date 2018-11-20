@@ -9,3 +9,4 @@ Repozytorium do zarządzania skryptami na laboratoria oraz zadaniami do wykonani
 | Birthday Problem, lab #1  | https://github.com/pietersweter/birthday-problem |
 | Hotel Simulation, lab #2  | https://github.com/pietersweter/hotel-simulation |
 | Million Song Challenge, lab #3 and #4  | https://github.com/pietersweter/million-song-challenge |
+| Million Song in Bash (AWK), lab #5 | https://github.com/pietersweter/million-song-bash |
